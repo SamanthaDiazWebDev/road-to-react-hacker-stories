@@ -1,12 +1,13 @@
 import * as React from 'react';
 import axios from 'axios';
+import styles from "./App.module.css"
 
 const API_ENDPOINT = 'https://hn.algolia.com/api/v1/search?query=';
 
 const useSemiPersistentState = (
-  key: string,
-  initialState: string
-): [string, (newValue: string) => void] => {
+  key,
+  initialState
+) => {
   const [value, setValue] = React.useState(
     localStorage.getItem(key) || initialState
   );
@@ -18,50 +19,9 @@ const useSemiPersistentState = (
   return [value, setValue];
 };
 
-type Story = {
-  objectID: string;
-  url: string;
-  title: string;
-  author: string;
-  num_comments: number;
-  points: number;
-};
-
-type Stories = Array<Story>;
-
-type StoriesState = {
-  data: Stories;
-  isLoading: boolean;
-  isError: boolean;
-};
-
-interface StoriesFetchInitAction {
-  type: 'STORIES_FETCH_INIT';
-}
-
-interface StoriesFetchSuccessAction {
-  type: 'STORIES_FETCH_SUCCESS';
-  payload: Stories;
-}
-
-interface StoriesFetchFailureAction {
-  type: 'STORIES_FETCH_FAILURE';
-}
-
-interface StoriesRemoveAction {
-  type: 'REMOVE_STORY';
-  payload: Story;
-}
-
-type StoriesAction =
-  | StoriesFetchInitAction
-  | StoriesFetchSuccessAction
-  | StoriesFetchFailureAction
-  | StoriesRemoveAction;
-
 const storiesReducer = (
-  state: StoriesState,
-  action: StoriesAction
+  state,
+  action
 ) => {
   switch (action.type) {
     case 'STORIES_FETCH_INIT':
@@ -129,7 +89,7 @@ const App = () => {
     handleFetchStories();
   }, [handleFetchStories]);
 
-  const handleRemoveStory = (item: Story) => {
+  const handleRemoveStory = (item) => {
     dispatchStories({
       type: 'REMOVE_STORY',
       payload: item,
@@ -137,13 +97,13 @@ const App = () => {
   };
 
   const handleSearchInput = (
-    event: React.ChangeEvent<HTMLInputElement>
+    event
   ) => {
     setSearchTerm(event.target.value);
   };
 
   const handleSearchSubmit = (
-    event: React.FormEvent<HTMLFormElement>
+    event
   ) => {
     setUrl(`${API_ENDPOINT}${searchTerm}`);
 
@@ -151,8 +111,8 @@ const App = () => {
   };
 
   return (
-    <div>
-      <h1>My Hacker Stories</h1>
+    <div className={`${styles.container}`}>
+      <h1 className={`${styles.headlinePrimary}`}>My Hacker Stories</h1>
 
       <SearchForm
         searchTerm={searchTerm}
@@ -173,18 +133,12 @@ const App = () => {
   );
 };
 
-type SearchFormProps = {
-  searchTerm: string;
-  onSearchInput: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  onSearchSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
-};
-
 const SearchForm = ({
   searchTerm,
   onSearchInput,
   onSearchSubmit,
-}: SearchFormProps) => (
-  <form onSubmit={onSearchSubmit}>
+}) => (
+  <form className={`${styles.searchForm}`} onSubmit={onSearchSubmit}>
     <InputWithLabel
       id="search"
       value={searchTerm}
@@ -194,20 +148,11 @@ const SearchForm = ({
       <strong>Search:</strong>
     </InputWithLabel>
 
-    <button type="submit" disabled={!searchTerm}>
+    <button className={`${styles.button} ${styles.buttonLarge}`} type="submit" disabled={!searchTerm}>
       Submit
     </button>
   </form>
 );
-
-type InputWithLabelProps = {
-  id: string;
-  value: string;
-  type?: string;
-  onInputChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  isFocused?: boolean;
-  children: React.ReactNode;
-}; 
 
 const InputWithLabel = ({
   id,
@@ -216,8 +161,8 @@ const InputWithLabel = ({
   onInputChange,
   isFocused,
   children,
-}: InputWithLabelProps) => {
-  const inputRef = React.useRef<HTMLInputElement>(null!);
+}) => {
+  const inputRef = React.useRef();
 
   React.useEffect(() => {
     if (isFocused && inputRef.current) {
@@ -227,9 +172,10 @@ const InputWithLabel = ({
 
   return (
     <>
-      <label htmlFor={id}>{children}</label>
+      <label className={`${styles.label}`} htmlFor={id}>{children}</label>
       &nbsp;
       <input
+        className={`${styles.input}`}
         id={id}
         ref={inputRef}
         type={type}
@@ -240,12 +186,7 @@ const InputWithLabel = ({
   );
 };
 
-type ListProps = {
-  list: Stories;
-  onRemoveItem: (item: Story) => void;
-};
-
-const List = ({ list, onRemoveItem }: ListProps) => (
+const List = ({ list, onRemoveItem }) => (
   <ul>
     {list.map((item) => (
       <Item
@@ -257,13 +198,8 @@ const List = ({ list, onRemoveItem }: ListProps) => (
   </ul>
 );
 
-type ItemProps = {
-  item: Story;
-  onRemoveItem: (item: Story) => void;
-};
-
-const Item = ({ item, onRemoveItem }: ItemProps) => (
-  <li>
+const Item = ({ item, onRemoveItem }) => (
+  <li className={`${styles.item}`}>
     <span>
       <a href={item.url}>{item.title}</a>
     </span>
@@ -271,7 +207,7 @@ const Item = ({ item, onRemoveItem }: ItemProps) => (
     <span>{item.num_comments}</span>
     <span>{item.points}</span>
     <span>
-      <button type="button" onClick={() => onRemoveItem(item)}>
+      <button className={`${styles.button} ${styles.buttonSmall}`} type="button" onClick={() => onRemoveItem(item)}>
         Dismiss
       </button>
     </span>
